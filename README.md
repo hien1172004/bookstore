@@ -20,7 +20,6 @@
 ## Yêu cầu hệ thống
 
 - Java 17 hoặc cao hơn
-- Node.js 14.x hoặc cao hơn
 - Docker và Docker Compose
 - MySQL 8.0
 - Redis 6.2
@@ -38,8 +37,8 @@ cd bookstore
 2. Tạo file `.env` trong thư mục gốc với nội dung:
 ```
 DB_URL=jdbc:mysql://mysql:3306/testdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-DB_USERNAME=root
-DB_PASSWORD=2004
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
 ```
 
 3. Build và chạy ứng dụng:
@@ -72,13 +71,6 @@ cd bookstore
 ```bash
 ./mvnw clean package
 java -jar target/api-service.jar
-```
-
-5. Cài đặt và chạy frontend:
-```bash
-cd frontend
-npm install
-npm start
 ```
 
 ## Cấu trúc dự án
@@ -132,7 +124,11 @@ bookstore/
 - Xác thực và phân quyền người dùng
 - Giỏ hàng
 - Tìm kiếm và lọc sách
+- quản lý các tác giả, nhà xuất bản
+- gửi thông tin đơn hàng và xác thực tài khoản qua mail
 - Quản lý người dùng
+- Thanh toan VNPAY và MOMO
+- Oauth2
 
 ## Đóng góp
 

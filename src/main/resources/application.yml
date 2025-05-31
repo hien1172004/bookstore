@@ -59,3 +59,16 @@ jwt:
     refreshKey: ${JWT_REFRESH_KEY}
     resetKey: ${JWT_RESET_KEY}
     verifyKey: ${JWT_VERIFY_KEY}
+
+cloudinary:
+  cloud-name: ${CLOUD_NAME}
+  api-key: ${CLOUD_KEY}
+  api-secret: ${CLOUD_SECRET}
+    
+vnpay:
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/api/vnpay/return
+  tmn-code: ${TMN_CODE}
+  secret-key: ${SECRET_KEY}
+  api-url: ${API_URL}
+  ipn-url:  http://localhost:8080/api/vnpay/ipn

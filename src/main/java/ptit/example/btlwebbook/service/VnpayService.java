@@ -1,5 +1,6 @@
 package ptit.example.btlwebbook.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,10 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 @Service
+@RequiredArgsConstructor
 public class VnpayService {
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+    private final VnpayConfig vnpayConfig;
     public String createPayment(VnpayRequest paymentRequest) throws UnsupportedEncodingException {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
@@ -36,7 +38,7 @@ public class VnpayService {
         String bankCode = "";
         String vnp_TxnRef = paymentRequest.getPaymentId();
         String vnp_IpAddr = "127.0.0.1";
-        String vnp_TmnCode = VnpayConfig.vnp_TmnCode;
+        String vnp_TmnCode = vnpayConfig.getVnp_TmnCode();
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -51,7 +53,7 @@ public class VnpayService {
         vnp_Params.put("vnp_OrderType", orderType);
         vnp_Params.put("vnp_Locale", "vn");
 //        vnp_Params.put("vnp_PayType", "QRCODE"); // Chỉ định thanh toán qua QR Code
-        vnp_Params.put("vnp_ReturnUrl", VnpayConfig.vnp_ReturnUrl);
+        vnp_Params.put("vnp_ReturnUrl", vnpayConfig.getVnp_ReturnUrl());
 //         // URL nhận thông báo thanh toán (IPN)
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
@@ -86,9 +88,9 @@ public class VnpayService {
         if (!hashData.isEmpty())
             hashData.setLength(hashData.length() - 1);
 
-        String vnp_SecureHash = VnpayConfig.hmacSHA512(VnpayConfig.secretKey, hashData.toString());
+        String vnp_SecureHash = vnpayConfig.hmacSHA512(vnpayConfig.getSecretKey(), hashData.toString());
         query.append("&vnp_SecureHash=").append(vnp_SecureHash);
-        return VnpayConfig.vnp_PayUrl + "?" + query;
+        return vnpayConfig.getVnp_PayUrl()+ "?" + query;
     }
 
     public ResponseEntity<String> handlePaymentReturn(String responseCode, String paymentId) {

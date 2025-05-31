@@ -11,6 +11,7 @@
   - MySQL 8.0
   - Redis 6.2
   - Maven
+  - Cloudinary
 
 - **Frontend:**
   - React.js
@@ -129,6 +130,7 @@ bookstore/
 - Quản lý người dùng
 - Thanh toan VNPAY và MOMO
 - Oauth2
+- Thêm và xóa ảnh lên Cloudniary
 
 ## Đóng góp
 

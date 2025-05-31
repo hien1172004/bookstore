@@ -16,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import ptit.example.btlwebbook.dto.response.TokenResponse;
 import ptit.example.btlwebbook.exception.ResourceNotFoundException;
 import ptit.example.btlwebbook.model.Avatar;
+import ptit.example.btlwebbook.model.RedisToken;
 import ptit.example.btlwebbook.model.Token;
 import ptit.example.btlwebbook.model.User;
+import ptit.example.btlwebbook.repository.RedisTokenRepository;
 import ptit.example.btlwebbook.repository.TokenRepository;
 import ptit.example.btlwebbook.repository.UserRepository;
 import ptit.example.btlwebbook.utils.ROLE;
@@ -34,9 +36,9 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
-    private final TokenRepository tokenRepository;
+//    private final TokenRepository tokenRepository;
 
+    private final RedisTokenService  redisTokenService;
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -105,39 +107,20 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 }
             }
             userRepository.save(user);
-//            User user = User.builder()
-//                    .email(email)
-//                    .fullName(fullname)
-//                    .phoneNumber(phone)
-//                    .status(UserStatus.ACTIVE)
-//                    .role(ROLE.USER)
-//                    .build();
-//            Avatar avatar = user.getAvatar() != null ? user.getAvatar() : new Avatar(); // Khởi tạo Avatar nếu null
-//            avatar.setUrl(image);
-//            user.setAvatar(avatar);
-//            userRepository.save(user);
             log.info("Looking up user in database with email: {}", user);
             log.info("Looking up user in database with email: {}", email);
-            User user1 = userRepository.findByEmail(email)
-                    .orElseThrow(() -> {
-                        log.error("User not found in database after OAuth2 login: {}", email);
-                        return new ResourceNotFoundException("User not found after OAuth2 login: " + email);
-                    });
-
-            log.info("User found in database: {}", user1.getId());
-
             // Tạo JWT
             String token = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
             log.info("Generated JWT tokens for user: {}", user.getId());
 
             // Lưu token
-            Token savedToken = Token.builder()
+            RedisToken savedToken = RedisToken.builder()
                     .accessToken(token)
                     .refreshToken(refreshToken)
-                    .email(email)
+                    .id(email)
                     .build();
-            tokenRepository.save(savedToken);
+            redisTokenService.save(savedToken);
             log.info("Saved tokens to database for user: {}", user.getId());
 
             // Redirect về frontend

@@ -11,3 +11,41 @@ target/
 # Hệ điều hành
 .DS_Store
 Thumbs.db
+
+# Help file
+HELP.md
+
+# Maven wrapper
+!.mvn/wrapper/maven-wrapper.jar
+
+# Maven build directories
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# STS files
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans files
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Environment variables
+.env
+*.env
+.env.*
+
+# Generated files
+target/generated-sources/
+target/classes/

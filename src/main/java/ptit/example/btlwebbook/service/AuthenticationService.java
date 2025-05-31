@@ -24,6 +24,7 @@ import ptit.example.btlwebbook.dto.response.UserResponse;
 import ptit.example.btlwebbook.exception.InvalidDataException;
 import ptit.example.btlwebbook.exception.ResourceNotFoundException;
 import ptit.example.btlwebbook.mapper.UserMapper;
+import ptit.example.btlwebbook.model.RedisToken;
 import ptit.example.btlwebbook.model.Token;
 import ptit.example.btlwebbook.model.User;
 import ptit.example.btlwebbook.repository.UserRepository;
@@ -41,7 +42,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
+//    private final TokenService tokenService;
+    private final RedisTokenService redisTokenService;
     private final UserService userService;
     private final EmailService emailService;
     private final UserMapper userMapper;
@@ -69,11 +71,16 @@ public class AuthenticationService {
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        tokenService.save(Token.builder()
-                .email(user.getEmail())
+        redisTokenService.save(RedisToken.builder()
+                .id(user.getEmail())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build());
+//        tokenService.save(Token.builder()
+//                .email(user.getEmail())
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .build());
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -107,8 +114,12 @@ public class AuthenticationService {
         }
 
         String accessToken = jwtService.generateToken(user);
-        tokenService.delete(user.getEmail());
-        tokenService.save(Token.builder().email(user.getEmail()).accessToken(accessToken).refreshToken(refreshToken).build());
+//        tokenService.delete(user.getEmail());
+        redisTokenService.save(RedisToken.builder()
+                .id(user.getEmail())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build());
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -134,7 +145,7 @@ public class AuthenticationService {
 
         final String email = jwtService.extractUsername(token, ACCESS_TOKEN);
 
-        tokenService.delete(email);
+        redisTokenService.delete(email);
 
         return "Removed!";
     }
@@ -161,7 +172,7 @@ public class AuthenticationService {
         String resetToken = jwtService.generateResetToken(user);
 
         // save to db
-        tokenService.save(Token.builder().email(user.getEmail()).resetToken(resetToken).build());
+        redisTokenService.save(RedisToken.builder().id(user.getEmail()).resetToken(resetToken).build());
 
         // TODO send email to user
         // Gửi email chứa liên kết đặt lại mật khẩu
@@ -193,7 +204,8 @@ public class AuthenticationService {
         var user = validateToken(secretKey);
 
         // check token by email
-        tokenService.getByEmail(user.getEmail());
+        redisTokenService.getById(user.getEmail());
+//        tokenService.getByEmail(user.getEmail());
 
         return "Reset";
     }
@@ -255,8 +267,8 @@ public class AuthenticationService {
         user.setStatus(UserStatus.NONE);
         String verificationToken = jwtService.generateVerificationToken(user);
         // Lưu verification token vào Token
-        tokenService.save(Token.builder()
-                .email(user.getEmail())
+        redisTokenService.save(RedisToken.builder()
+                .id(user.getEmail())
                 .verificationToken(verificationToken)
                 .build());
        log.info("verify Token: {}",verificationToken);
@@ -287,7 +299,7 @@ public class AuthenticationService {
             throw new InvalidDataException("Token xác nhận không hợp lệ hoặc đã hết hạn");
         }
         // Kiểm tra token trong cơ sở dữ liệu
-        Token storedToken = tokenService.getByEmail(email);
+        RedisToken storedToken = redisTokenService.getById(email);
         if (storedToken == null || !token.equals(storedToken.getVerificationToken())) {
             throw new InvalidDataException("Token xác nhận không khớp");
         }
@@ -295,7 +307,7 @@ public class AuthenticationService {
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         // Xóa verification token khỏi Token
-       tokenService.delete(email);
+       redisTokenService.delete(email);
 
         return "Tài khoản đã được kích hoạt thành công!";
     }

@@ -3,6 +3,10 @@ package ptit.example.btlwebbook.service.impl;
 import com.cloudinary.Cloudinary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ptit.example.btlwebbook.dto.request.AuthorDTO;
 import ptit.example.btlwebbook.dto.request.BookDTO;
 import ptit.example.btlwebbook.dto.request.GenreDTO;
+import ptit.example.btlwebbook.dto.request.PublisherDTO;
 import ptit.example.btlwebbook.dto.response.BookResponse;
 import ptit.example.btlwebbook.dto.response.PageResponse;
 import ptit.example.btlwebbook.exception.ResourceNotFoundException;
@@ -47,6 +52,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"books", "booksBySlug", "booksByCode", "bookPages", "bookSearch"}, allEntries = true)
     public BookResponse saveBook(BookDTO bookDTO) throws IOException {
         // Chuyển đổi bookDTO thành đối tượng Book
         Book book = bookMapper.toBook(bookDTO);
@@ -60,14 +66,6 @@ public class BookServiceImpl implements BookService {
         String slug = SlugUtils.generateSlug(book.getName());
         book.setSlug(slug);
 
-//        // Xử lý ảnh nếu có
-//        if (multipartFile != null && !multipartFile.isEmpty()) {
-//            String imageUrl = uploadImageFile.uploadImage(multipartFile);
-//            String publicId = SlugUtils.getPublicId(imageUrl);
-//            book.setPublicId(publicId);
-//            book.setImageUrl(imageUrl);
-//        }
-
         // Kiểm tra và gán Publisher nếu chưa có
         if (book.getPublisher() != null) {
             Publisher publisher = publisherRespository.findByName(book.getPublisher().getName());
@@ -77,30 +75,10 @@ public class BookServiceImpl implements BookService {
                 throw new IllegalArgumentException("Publisher does not exist");
             }
         }
+        book.setPublisher(resolvePublisher(bookDTO.getPublisher()));
+        book.setAuthors(resolveAuthors(bookDTO.getAuthors()));
+        book.setGenres(resolveGenres(bookDTO.getGenres()));
 
-        // Kiểm tra và gán Authors nếu chưa có
-        Set<Author> authors = new HashSet<>();
-        for (AuthorDTO authorDTO : bookDTO.getAuthors()) {
-            Author author = authorRepository.findByName(authorDTO.getName());
-            if (author != null) {
-                authors.add(author);
-            } else {
-                throw new IllegalArgumentException("Author " + authorDTO.getName() + " does not exist");
-            }
-        }
-        book.setAuthors(authors);
-
-        // Kiểm tra và gán Genres nếu chưa có
-        Set<Genre> genres = new HashSet<>();
-        for (GenreDTO genreDTO : bookDTO.getGenres()) {
-            Genre genre = genreRespository.findByName(genreDTO.getName());
-            if (genre != null) {
-                genres.add(genre);
-            } else {
-                throw new IllegalArgumentException("Genre " + genreDTO.getName() + " does not exist");
-            }
-        }
-        book.setGenres(genres);
 
         // Lưu đối tượng Book vào cơ sở dữ liệu
         Book savedBook = bookRepository.save(book);
@@ -111,14 +89,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
+    @CachePut(value = "books", key = "#id")
+    @CacheEvict(value = {"booksBySlug", "booksByCode", "bookPages", "bookSearch"}, allEntries = true)
     public BookResponse updateBook(BookDTO bookDTO, Long id) throws IOException {
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found book"));
-//        String imageURL ="";
-//        String publicID = "";
-//        if(bookDTO.getPublicId() != null && bookDTO.getImageUrl() != null){
-//            imageURL =book.getImageUrl();
-//            publicID = bookDTO.getPublicId();;
-//        }
         bookMapper.updateBook(book,bookDTO);
     if(!bookDTO.getName().isEmpty()){
         String slug = SlugUtils.generateSlug(bookDTO.getName());
@@ -133,49 +107,10 @@ public class BookServiceImpl implements BookService {
         if (bookDTO.getImageUrl() != null && !bookDTO.getImageUrl().isEmpty()) {
             book.setImageUrl(bookDTO.getImageUrl());
         }
-//        if(multipartFile != null && !multipartFile.isEmpty()){
-//            String imageUrl = uploadImageFile.updateImage(multipartFile, book.getPublicId());
-//            String publicId = SlugUtils.getPublicId(imageUrl);
-//            book.setPublicId(publicId);
-//            book.setImageUrl(imageUrl);
-//        }
-//        / Kiểm tra và gán Publisher nếu chưa có
-        if (book.getPublisher() != null) {
-            Publisher publisher = publisherRespository.findByName(book.getPublisher().getName());
-            if (publisher != null) {
-                book.setPublisher(publisher);
-            } else {
-                throw new IllegalArgumentException("Publisher does not exist");
-            }
-        }
 
-        // Kiểm tra và gán Authors nếu chưa có
-        Set<Author> authors = new HashSet<>();
-        for (AuthorDTO authorDTO : bookDTO.getAuthors()) {
-            Author author = authorRepository.findByName(authorDTO.getName());
-            if (author != null) {
-                authors.add(author);
-            } else {
-                throw new IllegalArgumentException("Author " + authorDTO.getName() + " does not exist");
-            }
-        }
-        book.setAuthors(authors);
-
-        // Kiểm tra và gán Genres nếu chưa có
-        Set<Genre> genres = new HashSet<>();
-        for (GenreDTO genreDTO : bookDTO.getGenres()) {
-            Genre genre = genreRespository.findByName(genreDTO.getName());
-            if (genre != null) {
-                genres.add(genre);
-            } else {
-                throw new IllegalArgumentException("Genre " + genreDTO.getName() + " does not exist");
-            }
-        }
-        book.setGenres(genres);
-//        if(!bookDTO.getPublicId().isEmpty() && !bookDTO.getImageUrl().isEmpty()){
-//            book.setImageUrl(imageURL);
-//            book.setPublicId(publicID);
-//        }
+        book.setPublisher(resolvePublisher(bookDTO.getPublisher()));
+        book.setAuthors(resolveAuthors(bookDTO.getAuthors()));
+        book.setGenres(resolveGenres(bookDTO.getGenres()));
         // Lưu đối tượng Book vào cơ sở dữ liệu
         Book savedBook = bookRepository.save(book);
         return bookMapper.toBookResponse(savedBook);
@@ -183,6 +118,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"books", "booksBySlug", "booksByCode", "bookPages", "bookSearch"}, allEntries = true)
     public void deleteBook(Long id) throws IOException {
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found book"));
         boolean isOrdered = orderDetailRepository.existsByBookId(id);
@@ -199,18 +135,21 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Cacheable(value = "books", key = "#id")
     public BookResponse getDetailBook(Long id) {
         Book book = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found book"));
         return bookMapper.toBookResponse(book);
     }
 
     @Override
+    @Cacheable(value = "booksBySlug", key = "#slug")
     public BookResponse getBySlug(String slug) {
       Book book = bookRepository.findBySlug(slug);
       return bookMapper.toBookResponse(book);
     }
 
     @Override
+    @Cacheable(value = "bookPages", key = "#pageNo + '-' + #pageSize + '-' + #genresIds + '-' + #sortBy")
     public PageResponse<?> getAll(int pageNo, int pageSize, List<Long> genresIds, String sortBy) {
         int page = 0;
         if (pageNo > 0){
@@ -253,6 +192,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Cacheable(value = "bookSearch", key = "#pageNo + '-' + #pageSize + '-' + #key")
     public PageResponse<?> searchBook(int pageNo, int pageSize, String key) {
         int page = 0;
         if(pageNo > 0){
@@ -275,6 +215,7 @@ public class BookServiceImpl implements BookService {
                 .build();
     }
     @Override
+    @Cacheable(value = "booksByCode", key = "#code")
     public BookResponse getBookByBookId(String code){
         Book book = bookRepository.findByCode(code);
         return bookMapper.toBookResponse(book);
@@ -283,6 +224,38 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean checkIsOrdered(Long bookId) {
         return orderDetailRepository.existsByBookId(bookId);
+    }
+
+    private Set<Author> resolveAuthors(List<AuthorDTO> authorDTOs) {
+        Set<Author> authors = new HashSet<>();
+        for (AuthorDTO authorDTO : authorDTOs) {
+            Author author = authorRepository.findByName(authorDTO.getName());
+            if (author == null) {
+                throw new IllegalArgumentException("Author " + authorDTO.getName() + " does not exist");
+            }
+            authors.add(author);
+        }
+        return authors;
+    }
+
+    private Set<Genre> resolveGenres(List<GenreDTO> genreDTOs) {
+        Set<Genre> genres = new HashSet<>();
+        for (GenreDTO genreDTO : genreDTOs) {
+            Genre genre = genreRespository.findByName(genreDTO.getName());
+            if (genre == null) {
+                throw new IllegalArgumentException("Genre " + genreDTO.getName() + " does not exist");
+            }
+            genres.add(genre);
+        }
+        return genres;
+    }
+
+    private Publisher resolvePublisher(PublisherDTO publisherDTO) {
+        Publisher publisher = publisherRespository.findByName(publisherDTO.getName());
+        if (publisher == null) {
+            throw new IllegalArgumentException("Publisher does not exist");
+        }
+        return publisher;
     }
 
 }

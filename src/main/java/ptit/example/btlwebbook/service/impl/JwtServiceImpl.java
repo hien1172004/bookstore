@@ -1,6 +1,7 @@
 package ptit.example.btlwebbook.service.impl;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -129,11 +130,15 @@ public class JwtServiceImpl  implements JwtService {
     }
 
     private Claims extraAllClaim(String token, TokenType type){
-        return Jwts.parserBuilder()
-                .setSigningKey(getKey(type))
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getKey(type))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new InvalidDataException("Invalid or expired JWT token");
+        }
     }
     private boolean isTokenExpired(String token, TokenType type) {
         Date expiration = extractExpiration(token, type);

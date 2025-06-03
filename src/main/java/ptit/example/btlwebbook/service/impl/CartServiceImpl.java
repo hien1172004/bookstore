@@ -113,11 +113,6 @@ public class CartServiceImpl implements CartService {
             throw new IllegalStateException("Người dùng không có ID hợp lệ");
         }
 
-        // Tìm sách
-//        Book book = bookRepository.findById(updateToCartDTO.getBookId())
-//                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sách"));
-
-        // Tìm hoặc tạo giỏ hàng
         Cart cart = cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
                     Cart newCart = Cart.builder().user(user).build();

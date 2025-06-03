@@ -11,8 +11,6 @@
   - MySQL 8.0
   - Redis 6.2
   - Maven
-  - Cloudinary
-
 
 ## Yêu cầu hệ thống
 
@@ -33,40 +31,11 @@ cd bookstore
 
 2. Tạo file `.env` trong thư mục gốc với nội dung:
 ```
-# Database Configuration
 DB_URL=
 DB_USERNAME=
 DB_PASSWORD=
+```
 
-# OAuth2 Configuration
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-# Facebook OAuth Configuration (nếu cần)
-FACEBOOK_CLIENT_ID=
-FACEBOOK_CLIENT_SECRET=
-
-# JWT Configuration
-JWT_SECRET_KEY=
-JWT_REFRESH_KEY=
-JWT_RESET_KEY=
-JWT_VERIFY_KEY=
-
-# Cloudinary
-CLOUD_NAME=
-CLOUD_KEY=
-CLOUD_SECRET=
-
-# VNPAY Configuration
-TMN_CODE=68D9FLWZ
-SECRET_KEY=
-API_URL=  # <-- Bạn điền API_URL nếu có
-VNP_PAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-VNP_RETURN_URL=http://localhost:8080/api/vnpay/return
-VNP_IPN_URL=https://8d7e-117-5-45-152.ngrok-free.app/api/vnpay/ipn
-
-REDIS_HOST=redis
-REDIS_PORT=6379
 3. Build và chạy ứng dụng:
 ```bash
 docker-compose up --build
@@ -99,6 +68,7 @@ cd bookstore
 java -jar target/api-service.jar
 ```
 
+
 ## Cấu trúc dự án
 
 ```
@@ -123,6 +93,25 @@ bookstore/
 └── README.md
 ```
 
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Đăng nhập
+- `POST /api/auth/register` - Đăng ký
+- `POST /api/auth/logout` - Đăng xuất
+
+### Books
+- `GET /api/books` - Lấy danh sách sách
+- `GET /api/books/{id}` - Lấy thông tin sách theo ID
+- `POST /api/books` - Thêm sách mới
+- `PUT /api/books/{id}` - Cập nhật thông tin sách
+- `DELETE /api/books/{id}` - Xóa sách
+
+### Orders
+- `GET /api/orders` - Lấy danh sách đơn hàng
+- `GET /api/orders/{id}` - Lấy thông tin đơn hàng
+- `POST /api/orders` - Tạo đơn hàng mới
+- `PUT /api/orders/{id}` - Cập nhật trạng thái đơn hàng
 
 ## Tính năng chính
 
@@ -131,13 +120,7 @@ bookstore/
 - Xác thực và phân quyền người dùng
 - Giỏ hàng
 - Tìm kiếm và lọc sách
-- quản lý các tác giả, nhà xuất bản
-- gửi thông tin đơn hàng và xác thực tài khoản qua mail
-- Thống kế đơn hàng, số lượng hàng....
 - Quản lý người dùng
-- Thanh toan VNPAY và MOMO
-- Oauth2
-- Thêm và xóa ảnh lên Cloudniary
 
 ## Đóng góp
 

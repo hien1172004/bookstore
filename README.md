@@ -8,6 +8,7 @@
   - Spring Boot 3.x
   - Spring Security
   - Spring Data JPA
+  - Spirng boot cache
   - MySQL 8.0
   - Redis 6.2
   - Maven
@@ -34,6 +35,35 @@ cd bookstore
 DB_URL=
 DB_USERNAME=
 DB_PASSWORD=
+# OAuth2 Configuration
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Facebook OAuth Configuration (nếu cần)
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+
+# JWT Configuration
+JWT_SECRET_KEY=
+JWT_REFRESH_KEY=
+JWT_RESET_KEY=
+JWT_VERIFY_KEY=
+
+# Cloudinary
+CLOUD_NAME=
+CLOUD_KEY=
+CLOUD_SECRET=
+
+# VNPAY Configuration
+TMN_CODE=
+SECRET_KEY=
+API_URL= 
+VNP_PAY_URL=
+VNP_RETURN_URL=
+VNP_IPN_URL=
+
+REDIS_HOST=redis
+REDIS_PORT=6379
 ```
 
 3. Build và chạy ứng dụng:
@@ -56,11 +86,11 @@ cd bookstore
 
 2. Cài đặt và chạy MySQL:
 - Tạo database tên `testdb`
-- Cập nhật thông tin kết nối trong `application.properties`
+- Cập nhật thông tin kết nối trong `application.yml`
 
 3. Cài đặt và chạy Redis:
 - Cài đặt Redis server
-- Cập nhật thông tin kết nối trong `application.properties`
+- Cập nhật thông tin kết nối trong `application.yml`
 
 4. Build và chạy backend:
 ```bash
@@ -93,34 +123,19 @@ bookstore/
 └── README.md
 ```
 
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/login` - Đăng nhập
-- `POST /api/auth/register` - Đăng ký
-- `POST /api/auth/logout` - Đăng xuất
-
-### Books
-- `GET /api/books` - Lấy danh sách sách
-- `GET /api/books/{id}` - Lấy thông tin sách theo ID
-- `POST /api/books` - Thêm sách mới
-- `PUT /api/books/{id}` - Cập nhật thông tin sách
-- `DELETE /api/books/{id}` - Xóa sách
-
-### Orders
-- `GET /api/orders` - Lấy danh sách đơn hàng
-- `GET /api/orders/{id}` - Lấy thông tin đơn hàng
-- `POST /api/orders` - Tạo đơn hàng mới
-- `PUT /api/orders/{id}` - Cập nhật trạng thái đơn hàng
-
 ## Tính năng chính
-
 - Quản lý sách (thêm, sửa, xóa, tìm kiếm)
 - Quản lý đơn hàng
 - Xác thực và phân quyền người dùng
 - Giỏ hàng
 - Tìm kiếm và lọc sách
+- Quản lý nhân viên
 - Quản lý người dùng
+- Quản lý tiến trình đơn hàng
+- Quên mật khẩu và xác thực tài khoản qua gmail
+- Gửi thông tin đơn hàng về mail
+- Quản lý các thông tin liên quan về sách tác giả, thể loại, nhà xuất bản
+- Thống kê số liệu 
 
 ## Đóng góp
 
